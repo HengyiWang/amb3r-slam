@@ -1,0 +1,2 @@
+# RGB-D (`--sensor rgbd`), runs MetricBackend.
+_include: [metric]

@@ -1,0 +1,86 @@
+# Front-end tracking.
+frontend:
+  ckpt: 'depth-anything/DA3-SMALL'
+  context: 2              # recent frames beside the keyframe
+  ref: 'first'
+  min_overlap: 0.35       # promote a keyframe below this overlap, or after one backend step
+
+# Hierarchical backend.
+backend:
+  frame_stride: 4
+  frame_rate: 10            # Hz
+  views: 24                 # frames the model sees per submap
+  new_views: 8              # new views per update
+  ref_view_strategy: 'middle'       # reference view of a submap pass
+  pair_ref_view_strategy: 'first'   # reference view of a loop-window pass
+  pixel_target: 3000        # points kept per frame for alignment
+  loop_half_window: 10      # frames per side of a loop window
+  edge_weight_floor: 0.25   # frame weight at a submap's edge relative to its centre
+
+  # Sparse long-context mapping.
+  long_context:
+    nodes_per_window: 8     # submaps one window spans
+    every_nodes: 4          # advance between windows
+    max_residual_rel: 0.15
+    weight: 0.5
+    min_conf_ratio: 0.7     # window confidence relative to the local submaps
+    min_covis: 0.20         # covisibility an edge's two spans must share
+    covis_stat: 'frac_strong'
+    covis_strong_at: 0.05
+    covis:
+      ratio: 0.9
+      ransac_px: 3.0
+      max_corners: 1024
+      aliked_score: 0.2
+
+  # Submap-to-submap alignment.
+  align:
+    conf_rel: 0.1           # drop points below this fraction of the median confidence
+    huber_rel: 0.1          # Huber knee as a fraction of the median residual
+    max_iters: 10
+    min_points: 2000
+    min_shared_frames: 4    # fewest shared views to align two reconstructions
+    max_pair_span: 2        # also align non-adjacent submaps that share frames; longer
+                            # edges come from long-context windows and loops
+    extra_weight: 0.7       # weight of a span edge
+
+  # Loop verification and the pose graph.
+  loop:
+    weight: 5.0
+    cauchy: false
+    weight_in_robust: true  # per-edge weight inside the robust kernel
+    max_residual_rel: 0.08  # per-end fit residual
+    min_overlap: 0.25       # voxel overlap of the two ends
+    anchor_search: 3        # window shifts tried when a placement fails; 0 disables
+    max_drift_chi: 10       # correction vs the chain's own drift; 0 disables
+    max_rot_drift_sqrt: 20  # deg per sqrt(submap steps); 0 disables
+    voxel_rel: 0.02
+    conf_rel: 0.5
+    pgo_iters: 25
+    pgo_huber: 2.0
+    per_edge_trans: true    # whiten translation by each edge's own baseline
+    per_edge_floor: 0.25    # smallest baseline an edge is judged against
+    pgo_mode: 'offline'     # 'online': also optimise at every accepted loop and correct the front-end
+
+# Loop retrieval
+retrieval:
+  enable: true              # false: no loop closure
+  method: 'dbow'            # 'dbow' | 'salad' | 'megaloc'
+  probe_every: 5            # query every n-th frame
+  min_frame_gap: 100        # frames before a match can count as a revisit
+  nms: 25                   # suppression radius around a closure, in probes
+  dbow:
+    vocab: 'checkpoints/ORBvoc.txt'
+    thresh: 0.02
+    num_repeat: 2
+    island_k: 6
+    island_min: 4
+    island_radius: 12
+    island_floor: 0.5
+  salad:
+    ckpt: 'checkpoints/dino_salad.ckpt'
+    image_size: [322, 322]
+    similarity_threshold: 0.85
+  megaloc:
+    image_size: [322, 322]
+    similarity_threshold: 0.55

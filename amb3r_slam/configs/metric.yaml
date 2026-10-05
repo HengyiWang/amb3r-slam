@@ -1,0 +1,13 @@
+backend:
+  metric_depth:
+    trim: 0.15              # tail fraction dropped from each frame's depth ratios
+    min_pixels: 2000        # a frame with fewer valid pixels does not vote
+    conf_rel: 0.1           # only pixels the model is confident about
+    depth_weight: 'inv_sq'  # 1/z^2 weighting of the ratios
+    min_frames: 3           # fewer voting frames leaves the submap up to scale
+    max_spread: 0.35        # frames disagreeing more than this leave it up to scale
+    max_depth: 5.0          # RGB-D range limits
+    min_depth: 0.3
+    inlier_tol: 0.05        # |log ratio| counted as explained by the scale
+    min_inlier_frac: 0.50   # fraction of a frame the scale must explain
+    fix_scale: true         # metric-to-metric edges fix s = 1

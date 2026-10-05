@@ -1,0 +1,23 @@
+backend:
+  lidar:
+    keyframe_every: 24      # frames between pose-graph keyframes
+    weight: 30              # odometry edge weight
+    scale_w: 10.0
+    rot_w: 3.0
+    cauchy: false
+    voxel: 0.5              # m
+    min_range: 3.0          # m
+    max_range: 80.0         # m
+    kiss_max_points_per_voxel: 5
+  loop:
+    lidar_refine: true      # ICP-refine each loop edge
+    lidar_map_win: 10       # +/- scans composed into each place's map
+    lidar_radius: 75.0      # m
+    lidar_max_corr: 1.5     # m
+    lidar_iters: 60
+    lidar_min_fitness: 0.3
+    lidar_verify_fitness: 0.8   # reject the loop below this registration fitness
+    lidar_max_correction: 0     # no bound on the refinement
+    lidar_edge_weights: true    # loop edges weighted like odometry edges
+    lidar_weight_by_rmse: true  # ...scaled by (median rmse / rmse)^2
+    cauchy: true
